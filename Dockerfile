@@ -20,4 +20,5 @@ ENV HOME /app
 WORKDIR /app
 RUN useradd -m heroku
 USER heroku
+RUN apt-get install -y youtube-dl
 CMD /app/bin/mojoMusic

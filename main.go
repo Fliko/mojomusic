@@ -61,7 +61,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-
+	ytSearch("tool the pot")
 	fmt.Println("Listening...")
 	lock := make(chan int)
 	<-lock
