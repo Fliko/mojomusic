@@ -21,9 +21,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		channel, _ := s.Channel(m.ChannelID)
 		serverID := channel.GuildID
 		method := strings.Split(m.Content, " ")[0][1:]
+		search := strings.Split(m.Content, " ")[1:]
+		keyWords := strings.Join(search[:], " ")
 
 		if method == "play" {
-			results := ytSearch(strings.Split(m.Content, " ")[1:])
+			fmt.Println(keyWords, m.Content, strings.Split(m.Content, " "))
+			results := ytSearch(keyWords)
 
 			if voiceInstances[serverID] != nil {
 				voiceInstances[serverID].queueVideo(results.title)

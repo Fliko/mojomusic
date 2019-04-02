@@ -65,11 +65,11 @@ func searchListByKeyword(service *youtube.Service, part string, maxResults int64
 	return printSearchListResults(response)
 }
 
-func ytSearch(search []string) ytResult {
+func ytSearch(search string) ytResult {
 	// AIzaSyAdznmKD2m9a0VGXei2nRQO2nTA6ZhB8sY
 	service, err := youtube.NewService(context.Background(), option.WithAPIKey("AIzaSyAdznmKD2m9a0VGXei2nRQO2nTA6ZhB8sY"))
 	handleError(err, "new service")
-	search = append(search, " hd", " hq")
-	res := searchListByKeyword(service, "snippet", 1, fmt.Sprint(search), "video")
+	search = search + " hd hq"
+	res := searchListByKeyword(service, "snippet", 1, search, "video")
 	return res
 }
