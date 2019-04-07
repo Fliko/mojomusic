@@ -6,7 +6,7 @@ import (
 	"os/exec"
 
 	"google.golang.org/api/option"
-	"google.golang.org/api/youtube/v3"
+	youtube "google.golang.org/api/youtube/v3"
 )
 
 type ytResult struct {
@@ -35,7 +35,7 @@ func printSearchListResults(response *youtube.SearchListResponse) ytResult {
 	}
 	url := fmt.Sprintf("https://youtu.be/%s", result.id)
 	fmt.Println(url)
-	out, err := exec.Command("youtube-dl", "-x", "--audio-quality", "0", "--write-thumbnail", "--exec", "./dca.sh", url).Output()
+	out, err := exec.Command("youtube-dl", "-x", "--audio-quality", "0", "--exec", "./dca.sh", url).Output()
 	fmt.Println(string(out))
 	handleError(err, "youtube-dl")
 	//thumbnail, err := exec.Command("youtube-dl", "--get-thumbnail", url).Output()

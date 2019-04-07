@@ -18,5 +18,5 @@ func logger(err error, msg string) {
 
 	//	t := time.Now()
 
-	log.Println(err, msg)
+	log.Fatalln(err, msg)
 }

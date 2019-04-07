@@ -18,27 +18,27 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	fmt.Printf("%20s %20s %20s > %s\n", m.ChannelID, time.Now().Format(time.Stamp), m.Author.Username, m.Content)
 
 	if m.Content[:1] == "!" {
-		channel, _ := s.Channel(m.ChannelID)
-		serverID := channel.GuildID
+		channel, _ := s.State.Channel(m.ChannelID)
+		guild, _ := s.State.Guild(channel.GuildID)
 		method := strings.Split(m.Content, " ")[0][1:]
 		search := strings.Split(m.Content, " ")[1:]
 		keyWords := strings.Join(search[:], " ")
-
+		fmt.Println(channel.ID, guild.ID)
 		if method == "play" {
 			fmt.Println(keyWords, m.Content, strings.Split(m.Content, " "))
 			results := ytSearch(keyWords)
 
-			if voiceInstances[serverID] != nil {
-				voiceInstances[serverID].queueVideo(results.title)
+			if voiceInstances[guild.ID] != nil {
+				voiceInstances[guild.ID].queueVideo(results.title)
 				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Queued: %s", results.title))
 			} else {
 				s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Playing: %s", results.title))
-				go newVoiceInstance(serverID, channel.ID, results)
+				go newVoiceInstance(guild, m.Author.ID, results)
 			}
-		} else if method == "stop" && voiceInstances[serverID] != nil {
-			voiceInstances[serverID].stopVideo()
-		} else if method == "skip" && voiceInstances[serverID] != nil {
-			voiceInstances[serverID].skipVideo()
+		} else if method == "stop" && voiceInstances[guild.ID] != nil {
+			voiceInstances[guild.ID].stopVideo()
+		} else if method == "skip" && voiceInstances[guild.ID] != nil {
+			voiceInstances[guild.ID].skipVideo()
 		} else if method == "help" {
 			s.ChannelMessageSend(m.ChannelID, `**!play** <youtube link or query> - Search/Play Youtube link, queues up if another track is playing
 **!skip** - Skip current playing track
@@ -61,7 +61,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	ytSearch("tool the pot")
+	// ytSearch("tool the pot")
 	fmt.Println("Listening...")
 	lock := make(chan int)
 	<-lock
