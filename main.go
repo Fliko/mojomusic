@@ -1,12 +1,18 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
+	"google.golang.org/grpc/resolver"
+	"google.golang.org/grpc/resolver/manual"
 )
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -47,7 +53,32 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
+const (
+	initialServers = "localhost:8080"
+	resolverType   = "manual"
+)
+
+var conn *grpc.ClientConn
+
+func init() {
+	// Register balancer type
+	opts := []grpc.DialOption{grpc.WithBalancerName(roundrobin.Name)}
+	// Register servers to attach to
+	b, _ := manual.GenerateAndRegisterManualResolver()
+	addresses := []resolver.Address{}
+	for _, addr := range strings.Split(initialServers, ",") {
+		addresses = append(addresses, resolver.Address{Addr: addr, Type: resolver.Backend})
+	}
+	b.InitialAddrs(addresses)
+	servers := b
+	resolver.Register(servers)
+	resolver.SetDefaultScheme(servers.Scheme())
+	// Connect
+	conn, _ = grpc.Dial("Connected", opts...)
+}
+
 func main() {
+	defer conn.Close()
 	// NTYyMzg5MTAxODQwNTY0MjI0.XKKEhw.o_hhe-jNHROcRscH4XhUbgoKx8A
 	discord, err := discordgo.New("Bot " + "NTYyMzg5MTAxODQwNTY0MjI0.XKKEhw.o_hhe-jNHROcRscH4XhUbgoKx8A")
 	if err != nil {
@@ -61,11 +92,14 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	// ytSearch("tool the pot")
-	fmt.Println("Listening...")
-	lock := make(chan int)
-	<-lock
+	// Listen for ^c
+	_, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	//search := os.Args[1:]
-	//ytSearch(search)
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, os.Kill)
+
+	fmt.Println("Listening")
+	<-stop
+	fmt.Println("[main] stopping")
 }
